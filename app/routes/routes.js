@@ -7,12 +7,12 @@ const router = express.Router();
 const {
   create,
   destroy,
-  getContact,
+  getAll,
   update,
 } = require("../controllers/controller");
 
 router.post("/", create);
-router.get("/", getContact);
+router.get("/", getAll);
 router.put("/:id", update);
 router.delete("/:id", destroy);
 
