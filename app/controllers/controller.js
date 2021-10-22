@@ -1,76 +1,120 @@
-const {
-    createContacts,
-    getAllContacts,
-    updateContact,
-    deleteContact,
-  } = require("../models/model.js");
-  
-  module.exports = {
-    create: (req, res) => {
-      createContacts(req.body)
+const db = require("../models")
+const Tutorial = db.tutorials
+const Op = db.Sequelize.Op;
+
+exports.create = (req, res) => {
+    if (!req.body.first_name) {
+        res.status(400).send({
+            message: "Content cannot be empty"
+        });
+        return
+    }
+
+    const body = {
+        first_name: req.body.first_name,
+        last_name: req.body.last_name ? req.body.last_name : null,
+        phone: req.body.phone ? req.body.phone : null,
+        email: req.body.email ? req.body.email : null
+    }
+
+    Tutorial.create(body)
         .then((data) => {
-          res.status(201).json({
-            data,
-            message: "success create contact",
-          });
+            res.send(data);
         })
         .catch((err) => {
-          res.status(500).json({
-            err,
-            message: "error create contact",
-          });
-        });
-    },
-  
-    getAll: (req, res) => {
-      getAllContacts()
+            res.status(500).send({
+                message: err.message || "Error create!"
+            })
+        })
+}
+
+exports.findAll = (req, res) => {
+    const first_name = req.query.first_name;
+    var condition = first_name ? { first_name: { [Op.iLike]: `%${first_name}`}} : null;
+
+    Tutorial.findAll({where: condition})
         .then((data) => {
-          res.status(200).json({
-            data,
-            message: "success get all contacts data",
-          });
+            res.send(data);
         })
         .catch((err) => {
-          res.status(500).json({
-            err,
-            message: "failed to get all contacts data",
-          });
-        });
-    },
-  
-    update: (req, res) => {
-      const id = req.params.id;
-  
-      updateContact(id, req.body)
-        .then((data) => {
-          res.status(200).json({
-            data,
-            message: "success update contact",
-          });
+            res.status(500).send({
+                message: err.message || "Error findAll!"
+            })
         })
-        .catch((err) => {
-          res.status(err).json({
-            err,
-            message: "error update contact",
-          });
-        });
-    },
-  
-    destroy: (req, res) => {
-      const id = req.params.id;
-  
-      deleteContact(id)
-        .then((data) => {
-          res.status(200).json({
-            data,
-            message: "Success delete contact",
-          });
+} 
+
+exports.findOne = (req, res) => {
+    const id = req.params.id
+
+    Tutorial.findByPk(id)
+    .then((data) => {
+        if (data) {
+            res.send(data)
+        } else {
+            res.status(404).send({
+                message: `cannot find id ${id}`
+            })
+        }
+    })
+    .catch((err) => {
+        res.status(500).send({
+            message: err.message || `Error retrive id ${id}!`
         })
-        .catch((err) => {
-          res.status(500).json({
-            err,
-            message: "Failed to delete contact",
-          });
-        });
-    },
-  };
+    })
+} 
+
+exports.update = (req, res) => {
+    const id = req.params.id
+
+    Tutorial.update(req.body, {
+        where: {id: id}
+    })
+    .then((num) => {
+        (num == 1) ? res.send({
+            message: "updated success"}) : res.send({ message: `cannot update id ${id}`})
+    })
+    .catch((err) => {
+        res.status(500).send({
+            message: err.message || `Error update id ${id}!`
+        })
+    })
+}
+
+exports.deleteOne = (req, res) => {
+    const id = req.params.id
+
+    Tutorial.destroy({
+        where: {id: id}
+    })
+    .then((num) => {
+        if (num = 1) {
+            res.send({
+                message: "deleteOne success"
+            })
+        } else {
+            res.send({
+                message: `cannot delete id ${id}`
+            })
+        }
+    })
+    .catch((err) => {
+        res.status(500).send({
+            message: err.message || `Error delete id ${id}!`
+        })
+    })
+} 
+
+exports.deleteAll = (req, res) => {
+    Tutorial.destroy( {
+        where: {},
+        truncate: false
+    })
+    .then((nums) => {
+        res.send({message: `${nums} success deleteAll`})
+    })
+    .catch((err) => {
+        res.status(500).send({
+            message: err.message || `Error deleteAll!`
+        })
+    })
+} 

@@ -1,19 +1,13 @@
-// initate express module
-const express = require("express");
-const app = express();
+module.exports = (app) => {
+  const tutorials = require("../controllers/controller")
+  var router = require("express").Router()
 
-const router = express.Router();
+  router.post("/", tutorials.create)
+  router.get("/", tutorials.findAll)
+  router.get("/:id", tutorials.findOne)
+  router.put("/:id", tutorials.update)
+  router.delete("/", tutorials.deleteAll)
+  router.delete("/:id", tutorials.deleteOne)
 
-const {
-  create,
-  destroy,
-  getAll,
-  update,
-} = require("../controllers/controller");
-
-router.post("/", create);
-router.get("/", getAll);
-router.put("/:id", update);
-router.delete("/:id", destroy);
-
-module.exports = router;
+  app.use("/", router)
+}
